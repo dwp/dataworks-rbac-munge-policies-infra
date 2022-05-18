@@ -1,6 +1,6 @@
-# dataworks-repo-template-terraform
+# dataworks-rbac-munge-policies-infra
 
-## Description
+## Infrastructure for an application to create and munge IAM emrfs policies for analytical-env users
 
 This repo contains Makefile and base terraform folders and jinja2 files to fit the standard pattern.
 This repo is a base to create new Terraform repos, renaming the template files and adding the githooks submodule, making the repo ready for use.
