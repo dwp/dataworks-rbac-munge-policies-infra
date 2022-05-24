@@ -40,7 +40,6 @@ resource "aws_batch_job_definition" "rbac_munge_policy" {
 
   container_properties = <<CONTAINER_PROPERTIES
   {
-      # "command": ["--data-s3-prefix", "Ref::data-s3-prefix", "--csv-location", "Ref::csv-location"],
       "image": "${local.rbac_munge_policies_image}",
       "jobRoleArn" : "${aws_iam_role.batch_job_role_munge_policies.arn}",
       "memory": ${local.batch_rbac_munge_policies_container_memory[local.environment]},

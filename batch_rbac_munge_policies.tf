@@ -8,19 +8,19 @@ resource "aws_iam_role" "ec2_role_munge_policies_batch" {
   name = "ec2_role_munge_policies_batch"
 
   assume_role_policy = <<EOF
-  {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Action": "sts:AssumeRole",
-          "Effect": "Allow",
-          "Principal": {
-            "Service": "ec2.amazonaws.com"
-          }
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "ec2.amazonaws.com"
         }
-      ]
-  }
-  EOF
+      }
+    ]
+}
+EOF
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile_munge_policies_batch" {
