@@ -2,7 +2,7 @@ groups:
   - name: master
     jobs:
       - development
-      - qa
+      # - qa
   - name: pull-request
     jobs:
       - dataworks-rbac-munge-policies-infra-pr
