@@ -1,10 +1,10 @@
 locals {
-  internal_compute_vpc_prefix_list_ids_s3 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.prefix_list_ids.s3
+  # internal_compute_vpc_prefix_list_ids_s3 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.prefix_list_ids.s3
+  # internal_compute_vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
   internal_compute_subnets                = data.terraform_remote_state.internal_compute.outputs.compute_environment_subnet
-  internal_compute_vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
   internal_compute_vpce_security_group_id = data.terraform_remote_state.internal_compute.outputs.vpce_security_groups.s3_object_tagger_batch_vpce_security_group.id
 
-  rbac_munge_policies_image            = "${local.account.management}.${data.terraform_remote_state.aws_ingestion.outputs.vpc.vpc.ecr_dkr_domain_name}/rbac-munge-policies:${var.image_version.rbac-munge-policies[local.environment]}"
+  rbac_munge_policies_image            = "${local.account.management-dev}.${data.terraform_remote_state.aws_ingestion.outputs.vpc.vpc.ecr_dkr_domain_name}/dataworks-rbac-munge-policies:${var.image_version.rbac-munge-policies[local.environment]}"
   rbac_munge_policies_application_name = "rbac-munge-policies"
 
   batch_rbac_munge_policies_container_vcpu = {
