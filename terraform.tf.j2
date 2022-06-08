@@ -25,6 +25,15 @@ provider "aws" {
   }
 }
 
+provider "aws" {
+  alias  = "management"
+  region = "eu-west-2"
+
+  assume_role {
+    role_arn = local.management_role_arn
+  }
+}
+
 locals {
   name        = "dataworks-rbac-munge-policies-infra"
   environment = terraform.workspace == "default" ? "development" : terraform.workspace
@@ -50,6 +59,18 @@ locals {
         {%- for key, value in ranges.items() %}
           {{ key }} = "{{ value }}"{% endfor %}
       } {%- endfor %}
+  }
+
+  management_account = {
+    development = "management-dev"
+    qa          = "management-dev"
+    integration = "management-dev"
+    preprod     = "management"
+    production  = "management"
+  }
+  management_workspace = {
+      management-dev = "default"
+      management     = "management"
   }
 }
 
@@ -90,6 +111,20 @@ data "terraform_remote_state" "aws_ingestion" {
   config = {
     bucket         = "{{terraform.state_file_bucket}}"
     key            = "terraform/dataworks/aws-ingestion.tfstate"
+    region         = "{{terraform.state_file_region}}"
+    encrypt        = true
+    kms_key_id     = "arn:aws:kms:{{terraform.state_file_region}}:{{terraform.state_file_account}}:key/{{terraform.state_file_kms_key}}"
+    dynamodb_table = "remote_state_locks"
+  }
+}
+
+data "terraform_remote_state" "cognito" {
+  backend   = "s3"
+  workspace = local.management_workspace[local.management_account[local.environment]]
+
+  config = {
+    bucket         = "{{terraform.state_file_bucket}}"
+    key            = "terraform/dataworks/aws-analytical-environment_cognito.tfstate"
     region         = "{{terraform.state_file_region}}"
     encrypt        = true
     kms_key_id     = "arn:aws:kms:{{terraform.state_file_region}}:{{terraform.state_file_account}}:key/{{terraform.state_file_kms_key}}"

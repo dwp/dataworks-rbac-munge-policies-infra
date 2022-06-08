@@ -7,6 +7,11 @@ locals {
   rbac_munge_policies_image            = "${local.account.management-dev}.${data.terraform_remote_state.aws_ingestion.outputs.vpc.vpc.ecr_dkr_domain_name}/dataworks-rbac-munge-policies:${var.image_version.rbac-munge-policies[local.environment]}"
   rbac_munge_policies_application_name = "rbac-munge-policies"
 
+  cognito_user_pool_id = data.terraform_remote_state.cognito.outputs.cognito.user_pool_id
+
+  emrfs_iam_assume_role = "{'Version':'2012-10-17','Statement':[{'Sid':'AllowAssumeRole','Effect':'Allow','Action':'sts:AssumeRole','Principal':{'AWS':'arn:aws:iam::${local.account[local.environment]}:role/AE_EMR_EC2_Role'}}]}"
+  # emrfs_iam_assume_role = jsonencode(data.aws_iam_policy_document.emrfs_iam_assume_role.json)
+
   batch_rbac_munge_policies_container_vcpu = {
     development = 2
     qa          = 2

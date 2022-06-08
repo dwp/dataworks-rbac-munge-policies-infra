@@ -56,3 +56,17 @@ resource "aws_iam_role" "batch_job_role_munge_policies" {
   assume_role_policy = data.aws_iam_policy_document.batch_assume_policy.json
   tags               = local.common_tags
 }
+
+# data "aws_iam_policy_document" "emrfs_iam_assume_role" {
+#   statement {
+#     sid     = "AllowAssumeRole"
+#     effect  = "Allow"
+#     actions = ["sts:AssumeRole"]
+#     principals {
+#       type = "AWS"
+#       identifiers = [
+#         "arn:aws:iam::${local.account[local.environment]}:role/AE_EMR_EC2_Role"
+#       ]
+#     }
+#   }
+# }

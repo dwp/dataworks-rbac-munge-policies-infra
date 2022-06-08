@@ -45,8 +45,15 @@ resource "aws_batch_job_definition" "rbac_munge_policy" {
       "memory": ${local.batch_rbac_munge_policies_container_memory[local.environment]},
       "vcpus": ${local.batch_rbac_munge_policies_container_vcpu[local.environment]},
       "environment": [
+          {"name": "DATABASE_CLUSTER_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.rbac_db.rds_cluster.arn}"},
+          {"name": "DATABASE_NAME", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.rbac_db.db_name}"},
+          {"name": "COMMON_TAGS", "value": "${join(",", [for key, val in local.common_tags : "${key}:${val}"])}"},
+          {"name": "ASSUME_ROLE_POLICY_JSON", "value": "${local.emrfs_iam_assume_role}"},
+          {"name": "S3FS_BUCKET_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.s3fs_bucket.arn}"},
+          {"name": "S3FS_KMS_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.s3fs_bucket_kms_arn}"},
+          {"name": "REGION", "value": "eu-west-2"},
+          {"name": "COGNITO_USERPOOL_ID", "value": "${data.terraform_remote_state.cognito.outputs.cognito.user_pool_id}"},
           {"name": "LOG_LEVEL", "value": "INFO"},
-          {"name": "AWS_DEFAULT_REGION", "value": "eu-west-2"},
           {"name": "ENVIRONMENT", "value": "${local.environment}"},
           {"name": "APPLICATION", "value": "${local.rbac_munge_policies_application_name}"}
       ],
