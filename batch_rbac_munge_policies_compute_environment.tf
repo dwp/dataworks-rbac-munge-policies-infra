@@ -53,6 +53,7 @@ resource "aws_batch_job_definition" "rbac_munge_policy" {
           {"name": "S3FS_BUCKET_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.s3fs_bucket.arn}"},
           {"name": "S3FS_KMS_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.s3fs_bucket_kms_arn}"},
           {"name": "REGION", "value": "eu-west-2"},
+          {"name": "MGMT_ACCOUNT_ROLE_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.emrfs_lambdas.policy_munge_lambda.environment[0].variables.MGMT_ACCOUNT_ROLE_ARN}"},
           {"name": "COGNITO_USERPOOL_ID", "value": "${data.terraform_remote_state.cognito.outputs.cognito.user_pool_id}"},
           {"name": "LOG_LEVEL", "value": "INFO"},
           {"name": "ENVIRONMENT", "value": "${local.environment}"},
