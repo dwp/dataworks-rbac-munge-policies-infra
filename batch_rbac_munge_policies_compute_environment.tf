@@ -14,8 +14,8 @@ resource "aws_batch_compute_environment" "batch_rbac_munge_policies_compute" {
     desired_vcpus = local.batch_rbac_munge_policies_compute_environment_desired_cpus[local.environment]
     max_vcpus     = local.batch_rbac_munge_policies_compute_environment_max_cpus[local.environment]
 
-    security_group_ids = [local.internal_compute_vpce_security_group_id]
-    subnets            = local.internal_compute_subnets.ids
+    security_group_ids = [local.batch_rbac_compute_security_group_id]
+    subnets            = local.batch_rbac_compute_subnets
     type               = "EC2"
 
     tags = merge(

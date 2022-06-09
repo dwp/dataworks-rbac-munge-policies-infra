@@ -24,7 +24,7 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile_munge_policies_batch" {
-  name = "ec2_instance_profile_s3_object_tagger_profile"
+  name = "ec2_instance_profile_munge_policies_batch"
   role = aws_iam_role.ec2_role_munge_policies_batch.name
 }
 
@@ -32,7 +32,10 @@ resource "aws_iam_role_policy_attachment" "ec2_policy_attachment_munge_policies_
   role       = aws_iam_role.ec2_role_munge_policies_batch.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
-
+resource "aws_iam_role_policy_attachment" "ecs_policy_attachment_munge_policies_batch" {
+  role       = aws_iam_role.ec2_role_munge_policies_batch.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
 # AWS Batch Job IAM resources
 data "aws_iam_policy_document" "batch_assume_policy" {
   statement {
