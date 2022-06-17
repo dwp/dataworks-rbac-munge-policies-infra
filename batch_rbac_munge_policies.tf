@@ -28,28 +28,30 @@ resource "aws_iam_instance_profile" "ec2_instance_profile_munge_policies_batch" 
   role = aws_iam_role.ec2_role_munge_policies_batch.name
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_policy_attachment_munge_policies_batch" {
+resource "aws_iam_role_policy_attachment" "ecs_instance_role_batch_rbac_ecr" {
+  role       = aws_iam_role.ec2_role_munge_policies_batch.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_instance_role_batch_rbac" {
   role       = aws_iam_role.ec2_role_munge_policies_batch.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
-resource "aws_iam_role_policy_attachment" "ecs_policy_attachment_munge_policies_batch" {
+resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
   role       = aws_iam_role.ec2_role_munge_policies_batch.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
 }
 # AWS Batch Job IAM resources
 data "aws_iam_policy_document" "batch_assume_policy" {
   statement {
     sid    = "BatchAssumeRolePolicy"
     effect = "Allow"
-
     actions = [
       "sts:AssumeRole",
     ]
-
     principals {
       identifiers = ["ecs-tasks.amazonaws.com"]
-
-      type = "Service"
+      type        = "Service"
     }
   }
 }

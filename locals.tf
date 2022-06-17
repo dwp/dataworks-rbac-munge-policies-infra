@@ -4,7 +4,7 @@ locals {
   batch_rbac_compute_security_group_id = aws_security_group.batch_rbac_vpce_internal_compute_security_group.id
   # batch_rbac_compute_security_group_id = data.terraform_remote_state.internal_compute.outputs.vpce_security_groups.s3_object_tagger_batch_vpce_security_group.id
   internal_compute_vpc_prefix_list_ids_s3 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.prefix_list_ids.s3
-  
+
   rbac_munge_policies_image            = "${local.account.management-dev}.${data.terraform_remote_state.aws_ingestion.outputs.vpc.vpc.ecr_dkr_domain_name}/dataworks-rbac-munge-policies:${var.image_version.rbac-munge-policies[local.environment]}"
   rbac_munge_policies_application_name = "rbac-munge-policies"
 
