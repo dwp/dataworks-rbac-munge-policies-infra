@@ -5,7 +5,7 @@ data "aws_iam_role" "aws_batch_service_role" {
 
 # EC2 IAM resources
 resource "aws_iam_role" "ec2_role_munge_policies_batch" {
-  name  = "ec2_role_munge_policies_batch"
+  name = "ec2_role_munge_policies_batch"
 
   assume_role_policy = <<EOF
 {

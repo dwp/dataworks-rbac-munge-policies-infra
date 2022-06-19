@@ -8,7 +8,7 @@ data "aws_iam_policy_document" "batch_assume_policy" {
       "sts:AssumeRole",
     ]
     principals {
-      identifiers = ["ecs-tasks.amazonaws.com"]
+      identifiers = ["ecs-tasks.amazonaws.com", "ecs.amazonaws.com"]
       type        = "Service"
     }
   }
@@ -109,6 +109,11 @@ resource "aws_iam_role_policy" "batch_rbac_cognito_policy" {
 }
 
 data "aws_iam_policy_document" "batch_rbac_cognito_document" {
+    statement {
+    sid       = "CognitoRdsSyncMgmt"
+    actions   = ["sts:AssumeRole"]
+    resources = [data.terraform_remote_state.aws-analytical-environment-app.outputs.emrfs_lambdas.policy_munge_lambda.environment[0].variables.MGMT_ACCOUNT_ROLE_ARN]
+  }
   statement {
     sid = "BatchRbacCognito"
     actions = [
