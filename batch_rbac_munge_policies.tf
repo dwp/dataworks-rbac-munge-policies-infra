@@ -5,7 +5,8 @@ data "aws_iam_role" "aws_batch_service_role" {
 
 # EC2 IAM resources
 resource "aws_iam_role" "ec2_role_munge_policies_batch" {
-  name = "ec2_role_munge_policies_batch"
+  count = length(regexall("management", local.environment)) > 0 ? 0 : 1
+  name  = "ec2_role_munge_policies_batch"
 
   assume_role_policy = <<EOF
 {
@@ -41,26 +42,26 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
   role       = aws_iam_role.ec2_role_munge_policies_batch.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
 }
-# AWS Batch Job IAM resources
-data "aws_iam_policy_document" "batch_assume_policy" {
-  statement {
-    sid    = "BatchAssumeRolePolicy"
-    effect = "Allow"
-    actions = [
-      "sts:AssumeRole",
-    ]
-    principals {
-      identifiers = ["ecs-tasks.amazonaws.com"]
-      type        = "Service"
-    }
-  }
-}
+# # AWS Batch Job IAM resources
+# data "aws_iam_policy_document" "batch_assume_policy" {
+#   statement {
+#     sid    = "BatchAssumeRolePolicy"
+#     effect = "Allow"
+#     actions = [
+#       "sts:AssumeRole",
+#     ]
+#     principals {
+#       identifiers = ["ecs-tasks.amazonaws.com"]
+#       type        = "Service"
+#     }
+#   }
+# }
 
-resource "aws_iam_role" "batch_job_role_munge_policies" {
-  name               = "batch_job_role_munge_policies"
-  assume_role_policy = data.aws_iam_policy_document.batch_assume_policy.json
-  tags               = local.common_tags
-}
+# resource "aws_iam_role" "batch_job_role_munge_policies" {
+#   name               = "batch_job_role_munge_policies"
+#   assume_role_policy = data.aws_iam_policy_document.batch_assume_policy.json
+#   tags               = local.common_tags
+# }
 
 # data "aws_iam_policy_document" "emrfs_iam_assume_role" {
 #   statement {
