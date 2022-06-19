@@ -1,4 +1,3 @@
-
 resource "aws_security_group" "batch_rbac_vpce_internal_compute_security_group" {
   name                   = "batch_rbac_vpce_internal_compute_security_group"
   description            = "RBAC batch security group to access the internal compute VPC endpoints"
