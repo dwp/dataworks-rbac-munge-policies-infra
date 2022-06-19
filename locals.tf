@@ -12,7 +12,7 @@ locals {
 
   management_role_arn = "arn:aws:iam::${local.account[local.management_account[local.environment]]}:role/${var.assume_role}"
   mgmt_account        = local.account[local.environment]
-  name_prefix         = "rbac-batch"
+  name_prefix         = "batch-rbac"
 
   emrfs_iam_assume_role = "{'Version':'2012-10-17','Statement':[{'Sid':'AllowAssumeRole','Effect':'Allow','Action':'sts:AssumeRole','Principal':{'AWS':'arn:aws:iam::${local.account[local.environment]}:role/AE_EMR_EC2_Role'}}]}"
   # emrfs_iam_assume_role = jsonencode(data.aws_iam_policy_document.emrfs_iam_assume_role.json)

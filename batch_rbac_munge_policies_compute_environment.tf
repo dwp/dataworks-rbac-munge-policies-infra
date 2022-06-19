@@ -41,7 +41,7 @@ resource "aws_batch_job_definition" "rbac_munge_policy" {
   container_properties = <<CONTAINER_PROPERTIES
   {
       "image": "${local.rbac_munge_policies_image}",
-      "jobRoleArn" : "${aws_iam_role.batch_job_role_munge_policies.arn}",
+      "jobRoleArn" : "${aws_iam_role.batch_rbac_role.arn}",
       "memory": ${local.batch_rbac_munge_policies_container_memory[local.environment]},
       "vcpus": ${local.batch_rbac_munge_policies_container_vcpu[local.environment]},
       "environment": [
