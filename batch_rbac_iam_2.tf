@@ -21,7 +21,7 @@ resource "aws_iam_role" "batch_rbac_role" {
 }
 
 resource "aws_iam_role_policy" "batch_rbac_iam_policy" {
-  name = "batch-rbac-iam"
+  name   = "batch-rbac-iam"
   role   = aws_iam_role.batch_rbac_role.id
   policy = data.aws_iam_policy_document.batch_rbac_iam_document.json
 }
@@ -74,7 +74,7 @@ data "aws_iam_policy_document" "batch_rbac_iam_document" {
 
 
 resource "aws_iam_role_policy" "batch_rbac_secrets_policy" {
-  name = "batch-rbac-secrets"
+  name   = "batch-rbac-secrets"
   role   = aws_iam_role.batch_rbac_role.id
   policy = data.aws_iam_policy_document.batch_rbac_secrets_document.json
 }
@@ -95,7 +95,7 @@ data "aws_iam_policy_document" "batch_rbac_secrets_document" {
 }
 
 resource "aws_iam_role_policy" "batch_rbac_rds_policy" {
-  name = "batch-rbac-rds"
+  name   = "batch-rbac-rds"
   role   = aws_iam_role.batch_rbac_role.id
   policy = data.aws_iam_policy_document.batch_rbac_rds_document.json
 }
@@ -109,7 +109,7 @@ data "aws_iam_policy_document" "batch_rbac_rds_document" {
 }
 
 resource "aws_iam_role_policy" "batch_rbac_kms_policy" {
-  name = "batch-rbac-kms"
+  name   = "batch-rbac-kms"
   role   = aws_iam_role.batch_rbac_role.id
   policy = data.aws_iam_policy_document.batch_rbac_kms_document.json
 }
@@ -128,18 +128,18 @@ data "aws_iam_policy_document" "batch_rbac_kms_document" {
 }
 
 resource "aws_iam_role_policy" "batch_rbac_cognito_policy" {
-  name = "batch-rbac-cognito"
+  name   = "batch-rbac-cognito"
   role   = aws_iam_role.batch_rbac_role.name
   policy = data.aws_iam_policy_document.batch_rbac_cognito_document.json
 }
 resource "aws_iam_role_policy" "batch_rbac_cloudwatch_policy" {
-  name = "batch-rbac-cloudwatch"
+  name   = "batch-rbac-cloudwatch"
   role   = aws_iam_role.batch_rbac_role.name
   policy = data.aws_iam_policy_document.batch_rbac_cloudwatch_document.json
 }
 
 data "aws_iam_policy_document" "batch_rbac_cognito_document" {
-    statement {
+  statement {
     sid       = "CognitoRdsSyncMgmt"
     actions   = ["sts:AssumeRole"]
     resources = [data.terraform_remote_state.aws-analytical-environment-app.outputs.emrfs_lambdas.policy_munge_lambda.environment[0].variables.MGMT_ACCOUNT_ROLE_ARN]
@@ -147,7 +147,7 @@ data "aws_iam_policy_document" "batch_rbac_cognito_document" {
 }
 
 data "aws_iam_policy_document" "batch_rbac_cloudwatch_document" {
-    statement {
+  statement {
     sid = "BatchRbacCloudWatchBasic"
     actions = [
       "logs:CreateLogGroup",
