@@ -120,23 +120,23 @@ data "aws_iam_policy_document" "batch_rbac_cognito_document" {
   }
 }
 
-resource "aws_iam_role" "mgmt_rbac_lambda_role" {
-  count              = length(regexall("management", local.environment)) > 0 ? 1 : 0
-  name               = "${local.name_prefix}-mgmt-cognito-rbac-role-${local.environment}"
-  assume_role_policy = data.aws_iam_policy_document.rbac_lambdas_trust_policy.json
-  tags               = local.common_tags
-  provider           = aws.management
-}
+# resource "aws_iam_role" "mgmt_rbac_lambda_role" {
+#   count              = length(regexall("management", local.environment)) > 0 ? 1 : 0
+#   name               = "${local.name_prefix}-mgmt-cognito-rbac-role-${local.environment}"
+#   assume_role_policy = data.aws_iam_policy_document.rbac_lambdas_trust_policy.json
+#   tags               = local.common_tags
+#   provider           = aws.management
+# }
 
-data "aws_iam_policy_document" "rbac_lambdas_trust_policy" {
+# data "aws_iam_policy_document" "rbac_lambdas_trust_policy" {
 
-  statement {
-    sid     = "MgmtBatchAssumeRole"
-    actions = ["sts:AssumeRole"]
+#   statement {
+#     sid     = "MgmtBatchAssumeRole"
+#     actions = ["sts:AssumeRole"]
 
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_role.batch_rbac_role.arn]
-    }
-  }
-}
+#     principals {
+#       type        = "AWS"
+#       identifiers = [aws_iam_role.batch_rbac_role.arn]
+#     }
+#   }
+# }
