@@ -115,7 +115,7 @@ data "aws_iam_policy_document" "batch_rbac_cognito_document" {
     resources = [data.terraform_remote_state.aws-analytical-environment-app.outputs.emrfs_lambdas.policy_munge_lambda.environment[0].variables.MGMT_ACCOUNT_ROLE_ARN]
   }
   statement {
-    sid = "BatchRbacCognito"
+    sid = "BatchRbacCloudWatchBasic"
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
