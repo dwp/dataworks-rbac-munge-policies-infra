@@ -1,7 +1,13 @@
 locals {
+  # analytical-env network stuff
+  batch_rbac_vpc_id                    = data.terraform_remote_state.aws_analytical_environment_infra.outputs.vpc.aws_vpc.id
+  batch_rbac_compute_subnets           = data.terraform_remote_state.aws_analytical_environment_infra.outputs.vpc.aws_subnets_private[*].id
+  batch_rbac_compute_security_group_id = aws_security_group.batch_rbac_vpce_analytical_env_security_group.id
+
   # internal compute network stuff
-  batch_rbac_compute_subnets           = data.terraform_remote_state.internal_compute.outputs.compute_environment_subnet.ids
-  batch_rbac_compute_security_group_id = aws_security_group.batch_rbac_vpce_internal_compute_security_group.id
+  # batch_rbac_vpc_id                    = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
+  # batch_rbac_compute_subnets           = data.terraform_remote_state.internal_compute.outputs.compute_environment_subnet.ids
+  # batch_rbac_compute_security_group_id = aws_security_group.batch_rbac_vpce_internal_compute_security_group.id
   # batch_rbac_compute_security_group_id = data.terraform_remote_state.internal_compute.outputs.vpce_security_groups.s3_object_tagger_batch_vpce_security_group.id
   internal_compute_vpc_prefix_list_ids_s3 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.prefix_list_ids.s3
 
