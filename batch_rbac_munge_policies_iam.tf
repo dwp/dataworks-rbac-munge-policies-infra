@@ -175,12 +175,6 @@ resource "aws_iam_role_policy" "batch_rbac_cognito_policy" {
   role   = aws_iam_role.batch_rbac_role.name
   policy = data.aws_iam_policy_document.batch_rbac_cognito_document.json
 }
-resource "aws_iam_role_policy" "batch_rbac_cloudwatch_policy" {
-  name   = "batch-rbac-cloudwatch"
-  role   = aws_iam_role.batch_rbac_role.name
-  policy = data.aws_iam_policy_document.batch_rbac_cloudwatch_document.json
-}
-
 data "aws_iam_policy_document" "batch_rbac_cognito_document" {
   statement {
     sid       = "CognitoRdsSyncMgmt"
@@ -188,6 +182,12 @@ data "aws_iam_policy_document" "batch_rbac_cognito_document" {
     resources = [data.terraform_remote_state.aws-analytical-environment-app.outputs.emrfs_lambdas.policy_munge_lambda.environment[0].variables.MGMT_ACCOUNT_ROLE_ARN]
   }
 }
+resource "aws_iam_role_policy" "batch_rbac_cloudwatch_policy" {
+  name   = "batch-rbac-cloudwatch"
+  role   = aws_iam_role.batch_rbac_role.name
+  policy = data.aws_iam_policy_document.batch_rbac_cloudwatch_document.json
+}
+
 
 data "aws_iam_policy_document" "batch_rbac_cloudwatch_document" {
   statement {
