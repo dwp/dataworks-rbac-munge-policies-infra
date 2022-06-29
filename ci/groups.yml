@@ -3,6 +3,7 @@ groups:
     jobs:
       - development
       - qa
+      - int
   - name: pull-request
     jobs:
       - dataworks-rbac-munge-policies-infra-pr
