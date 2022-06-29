@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "batch_assume_policy" {
 }
 
 resource "aws_iam_role" "batch_rbac_role" {
-  name               = "batch_rbac_role"
+  name               = "batch-rbac-role"
   assume_role_policy = data.aws_iam_policy_document.batch_assume_policy.json
   tags               = local.common_tags
 }
