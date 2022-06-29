@@ -2,3 +2,5 @@ groups:
   - name: rbac-munge-policies
     jobs:
       - rbac-munge-policies-dev
+      - rbac-munge-policies-qa
+      - rbac-munge-policies-int
