@@ -1,0 +1,108 @@
+meta:
+  plan:
+    terraform-common-config:
+      config:
+        platform: linux
+        params:
+          TF_INPUT: false
+          AWS_REGION: ((dataworks.aws_region))
+          TF_CLI_ARGS_apply: -lock-timeout=300s
+          TF_CLI_ARGS_plan: -lock-timeout=300s
+          TF_VAR_slack_webhook_url: ((dataworks.slack_webhook_url))
+
+    terraform-bootstrap:
+      task: terraform-bootstrap
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              if [ -f ../previous_success/exit-if-succeeded.sh ]; then
+                source ../previous_success/exit-if-succeeded.sh
+              fi
+              python bootstrap_terraform.py
+              sed -i '/^assume_role/ d' terraform/deploy/$DEPLOY_PATH/terraform.tfvars
+              cp terraform/deploy/$DEPLOY_PATH/terraform.tf ../terraform-config
+              cp terraform/deploy/$DEPLOY_PATH/terraform.tfvars ../terraform-config
+          dir: aws-analytical-env
+        inputs:
+          - name: aws-analytical-env
+        outputs:
+          - name: terraform-config
+      params:
+        AWS_REGION: eu-west-2
+
+    terraform-output:
+      task: terraform-output
+      .: (( inject meta.plan.terraform-common-config ))
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.terraform_repository))
+            version: ((dataworks.terraform_14_version))
+            tag: ((dataworks.terraform_14_version))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              cp ../../../../terraform-config/terraform.tf* .
+              terraform workspace show
+              terraform init
+              terraform output --json > ../../../../${TF_OUTPUT_FOLDER}/outputs.json
+
+    rbac-munge-policies-batch:
+      task: rbac-munge-policies-batch
+      attempts: 1
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_DEFAULT_REGION: eu-west-2
+          TIMEOUT: 30   # Time (in minutes) to wait for job to complete
+          ASSUME_DURATION: 14400
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              source /assume-role
+              pipeline_name=`cat "meta/build_pipeline_name"`
+              job_name=`cat "meta/build_job_name"`
+              build_number=$(cat "meta/build_name" | tr '.' '_')
+              job_id=$(aws batch submit-job --job-queue ${BATCH_JOB_QUEUE} --job-definition ${BATCH_JOB_DEFINITION} \
+                --job-name ${pipeline_name}-${job_name}-${build_number} \
+                | jq -e --raw-output .jobId)
+              i=0
+              set +x
+              while [[ ${i} -le ${TIMEOUT} ]]
+              do
+                status=$(aws batch describe-jobs --jobs ${job_id} | jq -e --raw-output '.jobs[0].status')
+                if [ "$status" == "FAILED" ]; then
+                  echo "job failed"
+                  exit 1
+                fi
+                if [ "$status" == "SUCCEEDED" ]; then
+                  echo "job succeeded"
+                  exit 0
+                fi
+                echo "job is currently ${status}"
+                i=$((i+1))
+                sleep 60
+              done
+              exit 1

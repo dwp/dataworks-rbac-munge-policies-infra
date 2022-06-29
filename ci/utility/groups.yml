@@ -1,0 +1,4 @@
+groups:
+  - name: rbac-munge-policies
+    jobs:
+      - rbac-munge-policies-dev
