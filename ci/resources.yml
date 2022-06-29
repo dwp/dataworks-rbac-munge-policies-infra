@@ -5,7 +5,7 @@ resources:
       repository: dwp/dataworks-rbac-munge-policies-infra
       access_token: ((dataworks-secrets.concourse_github_pat))
     webhook_token: ((dataworks.concourse_github_webhook_token))
-    check_every: 720h
+    check_every: 5m
 
   - name: dataworks-rbac-munge-policies-infra
     type: git
@@ -14,7 +14,7 @@ resources:
       uri: https://github.com/dwp/dataworks-rbac-munge-policies-infra.git
       access_token: ((dataworks-secrets.concourse_github_pat))
     webhook_token: ((dataworks.concourse_github_webhook_token))
-    check_every: 720h
+    check_every: 5m
 
   - name: dataworks-rbac-munge-policies-infra-update-pipeline
     type: git
@@ -25,7 +25,7 @@ resources:
         - ci/*
         - aviator.yml
     webhook_token: ((dataworks.concourse_github_webhook_token))
-    check_every: 720h 
+    check_every: 5m 
 
   - name: dw-al2-ecs-ami
     type: ami
