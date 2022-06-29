@@ -115,7 +115,6 @@ data "aws_iam_policy_document" "batch_rbac_iam_document" {
   }
 }
 
-
 resource "aws_iam_role_policy" "batch_rbac_secrets_policy" {
   name   = "batch-rbac-secrets"
   role   = aws_iam_role.batch_rbac_role.id
@@ -187,7 +186,6 @@ resource "aws_iam_role_policy" "batch_rbac_cloudwatch_policy" {
   role   = aws_iam_role.batch_rbac_role.name
   policy = data.aws_iam_policy_document.batch_rbac_cloudwatch_document.json
 }
-
 
 data "aws_iam_policy_document" "batch_rbac_cloudwatch_document" {
   statement {
