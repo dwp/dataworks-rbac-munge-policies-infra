@@ -69,3 +69,13 @@ resource "aws_security_group_rule" "ae_batch_rbac_egress_to_s3_http" {
   to_port           = 80
   security_group_id = local.batch_rbac_compute_security_group_id
 }
+# temp until the prefix list is defined and doubt about it is cleared by aws support
+resource "aws_security_group_rule" "ae_batch_rbac_egress_to_nat" {
+  description       = "Allow batch rbac to reach internet over nat"
+  type              = "egress"
+  cidr_blocks       = ["0.0.0.0/0"]
+  protocol          = "tcp"
+  from_port         = 443
+  to_port           = 443
+  security_group_id = local.batch_rbac_compute_security_group_id
+}
