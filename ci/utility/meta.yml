@@ -106,3 +106,74 @@ meta:
                 sleep 60
               done
               exit 1
+
+    sync_rbac_db_from_cognito:
+      task: sync-rbac-db
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+          AWS_REGION: ((dataworks.aws_region))
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+        inputs:
+          - name: terraform-output
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              source /assume-role
+
+              SYNC_RDS_FUNCTION_NAME=$(jq -r ".emrfs_lambdas.value.rds_sync_lambda.function_name" < ./terraform-output/outputs.json)
+              aws lambda invoke --function-name $SYNC_RDS_FUNCTION_NAME --invocation-type RequestResponse --cli-connect-timeout 900 --cli-read-timeout 900 output.json
+
+              jq < output.json
+              jq -eC "if .errorMessage? then error(.errorMessage) else true end" < output.json
+
+    update-db:
+      task: update-db
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              if [ -z ".aws-rbac/${CSV_FILE}" ]
+              then
+                 echo No CSV file defined.
+                 exit 1
+              fi
+
+              if [ -z ".aws-rbac/${PY_SCRIPT}" ]
+              then
+                 echo No python script defined.
+                 exit 1
+              fi
+              source /assume-role # Assume CI Role
+              export RDS_CLUSTER_ARN=$(jq -r .rbac_db.value.initialise_db_lambda.environment[0].variables.RDS_CLUSTER_ARN terraform-output-aws-analytical-env-app/outputs.json)
+              export RDS_DATABASE_NAME=$(jq -r .rbac_db.value.initialise_db_lambda.environment[0].variables.RDS_DATABASE_NAME terraform-output-aws-analytical-env-app/outputs.json)
+              export RDS_CREDENTIALS_SECRET_ARN=$(jq -r .rbac_db.value.secrets.client_credentials.sync_rds.arn terraform-output-aws-analytical-env-app/outputs.json)
+              export AWS_ROLE_ARN=$(jq -r .rbac_db.value.sync_role.arn terraform-output-aws-analytical-env-app/outputs.json)
+              source /assume-role # Assume RDS Role
+
+              cd aws-rbac
+              python ${PY_SCRIPT} -i ${CSV_FILE}
+        inputs:
+          - name: aws-rbac
+          - name: terraform-output-aws-analytical-env-app
+          - name: terraform-config

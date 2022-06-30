@@ -1,11 +1,117 @@
 jobs:
-  - name: rbac-munge-policies-qa
+  - name: sync-cognito-users-to-rds-qa
+    plan:
+      - get: aws-rbac
+        trigger: true
+      - get: aws-analytical-env
+        trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: 'qa'
+      - .: (( inject meta.plan.sync_rbac_db_from_cognito ))
+        config:
+          params:
+            AWS_ACC: ((aws_account.qa))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+            TF_WORKSPACE: 'qa'
+        input_mapping:
+          terraform-output: terraform-output-aws-analytical-env-app
+
+
+  - name: update-groups-qa
+    max_in_flight: 1
+    plan:
+      - get: aws-rbac
+        trigger: true
+        passed:
+          - sync-cognito-users-to-rds-qa
+      - get: aws-analytical-env
+        trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+          TF_WORKSPACE: "qa"
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: "qa"
+      - .: (( inject meta.plan.update-db ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+            CSV_FILE: data/roles-qa.csv
+            PY_SCRIPT: update_groups.py
+
+  - name: update-users-qa
+    max_in_flight: 1
+    plan:
+      - get: aws-rbac
+        trigger: true
+        passed:
+          - update-groups-qa
+      - get: aws-analytical-env
+        # trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+          TF_WORKSPACE: "qa"
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: "qa"
+      - .: (( inject meta.plan.update-db ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+            CSV_FILE: data/users-management-dev.csv
+            PY_SCRIPT: update_users.py
+
+  - name: batch-rbac-munge-policies-qa
     max_in_flight: 1
     serial: true
     plan:
       - put: meta
         resource: meta-qa
+      - get: aws-rbac
+        trigger: true
+        passed:
+          -  update-users-qa
       - get: aws-analytical-env
+        trigger: false
       - .: (( inject meta.plan.terraform-bootstrap ))
         task: terraform-bootstrap-aws-analytical-env-app
         params:

@@ -1,11 +1,116 @@
 jobs:
-  - name: rbac-munge-policies-dev
+  - name: sync-cognito-users-to-rds-dev
+    plan:
+      - get: aws-rbac
+        trigger: true
+      - get: aws-analytical-env
+        trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: 'default'
+      - .: (( inject meta.plan.sync_rbac_db_from_cognito ))
+        config:
+          params:
+            AWS_ACC: ((aws_account.development))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            TF_WORKSPACE: 'default'
+        input_mapping:
+          terraform-output: terraform-output-aws-analytical-env-app
+
+  - name: update-groups-dev
+    max_in_flight: 1
+    plan:
+      - get: aws-rbac
+        trigger: true
+        passed:
+          - sync-cognito-users-to-rds-dev
+      - get: aws-analytical-env
+        trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+          TF_WORKSPACE: "default"
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: "default"
+      - .: (( inject meta.plan.update-db ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            CSV_FILE: data/roles-dev.csv
+            PY_SCRIPT: update_groups.py
+
+  - name: update-users-dev
+    max_in_flight: 1
+    plan:
+      - get: aws-rbac
+        trigger: true
+        passed:
+          - update-groups-dev
+      - get: aws-analytical-env
+        # trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+          TF_WORKSPACE: "default"
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: "default"
+      - .: (( inject meta.plan.update-db ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            CSV_FILE: data/users-management-dev.csv
+            PY_SCRIPT: update_users.py
+
+  - name: batch-rbac-munge-policies-dev
     max_in_flight: 1
     serial: true
     plan:
       - put: meta
         resource: meta-development
+      - get: aws-rbac
+        trigger: true
+        passed:
+          - update-users-dev
       - get: aws-analytical-env
+        trigger: false
       - .: (( inject meta.plan.terraform-bootstrap ))
         task: terraform-bootstrap-aws-analytical-env-app
         params:
