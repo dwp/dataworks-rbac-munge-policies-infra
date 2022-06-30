@@ -11,7 +11,7 @@ resources:
   - name: aws-rbac
     type: git
     source:
-      branch: dev-sb
+      branch: master
       username: ((dataworks.enterprise_github_username))
       password: ((dataworks-secrets.enterprise_github_pat))
       uri: https://((dataworks.enterprise_github_url))/dip/aws-rbac.git
