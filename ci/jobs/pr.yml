@@ -4,6 +4,8 @@ jobs:
       - get: dataworks-rbac-munge-policies-infra-pr
         trigger: true
         version: every
+      - get: dw-al2-ecs-ami
+        trigger: true
       - put: dataworks-rbac-munge-policies-infra-pr
         params:
           path: dataworks-rbac-munge-policies-infra-pr

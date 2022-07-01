@@ -4,6 +4,9 @@ jobs:
     plan:
       - get: dataworks-rbac-munge-policies-infra
         trigger: true
+      - get: dw-al2-ecs-ami
+        trigger: true
       - .: (( inject meta.plan.terraform-bootstrap ))
       - .: (( inject meta.plan.terraform-apply ))
       - .: (( inject meta.plan.terraform-plan ))
+

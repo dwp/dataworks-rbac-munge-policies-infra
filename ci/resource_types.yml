@@ -10,3 +10,9 @@ resource_types:
     source:
       repository: concourse/github-release-resource
       tag: ((github_release_version))
+
+  - name: ami
+    type: docker-image
+    source:
+      repository: dwpdigital/ami-resource
+      tag: latest
