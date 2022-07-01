@@ -1,0 +1,21 @@
+groups:
+  - name: rbac-munge-policies-dev
+    jobs:
+      - sync-cognito-users-to-rds-dev
+      - update-users-dev
+      - update-groups-dev
+      - batch-rbac-munge-policies-dev
+
+  - name: rbac-munge-policies-qa
+    jobs:
+      - sync-cognito-users-to-rds-qa
+      - update-users-qa
+      - update-groups-qa
+      - batch-rbac-munge-policies-qa
+
+  - name: rbac-munge-policies-int
+    jobs:
+      - sync-cognito-users-to-rds-int
+      - update-users-int
+      - update-groups-int
+      - batch-rbac-munge-policies-int

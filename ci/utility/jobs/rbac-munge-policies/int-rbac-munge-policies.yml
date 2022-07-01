@@ -1,0 +1,159 @@
+jobs:
+  - name: sync-cognito-users-to-rds-int
+    plan:
+      - get: aws-rbac
+        trigger: true
+      - get: aws-analytical-env
+        trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: 'integration'
+      - .: (( inject meta.plan.sync_rbac_db_from_cognito ))
+        config:
+          params:
+            AWS_ACC: ((aws_account.integration))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+            TF_WORKSPACE: 'integration'
+        input_mapping:
+          terraform-output: terraform-output-aws-analytical-env-app
+
+
+  - name: update-groups-int
+    max_in_flight: 1
+    plan:
+      - get: aws-rbac
+        trigger: true
+        passed:
+          - sync-cognito-users-to-rds-int
+      - get: aws-analytical-env
+        trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+          TF_WORKSPACE: "integration"
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: "integration"
+      - .: (( inject meta.plan.update-db ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+            CSV_FILE: data/roles-integration.csv
+            PY_SCRIPT: update_groups.py
+
+  - name: update-users-int
+    max_in_flight: 1
+    plan:
+      - get: aws-rbac
+        trigger: true
+        passed:
+          - update-groups-int
+      - get: aws-analytical-env
+        # trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+          TF_WORKSPACE: "integration"
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: "integration"
+      - .: (( inject meta.plan.update-db ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+            CSV_FILE: data/users-management-dev.csv
+            PY_SCRIPT: update_users.py
+
+  - name: batch-rbac-munge-policies-int
+    max_in_flight: 1
+    serial: true
+    plan:
+      - put: meta
+        resource: meta-int
+      - get: aws-rbac
+        trigger: true
+        passed:
+          -  update-users-int
+      - get: aws-analytical-env
+        trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-app
+        params:
+          DEPLOY_PATH: app
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-app
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/app
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-app
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-app
+          TF_WORKSPACE: 'integration'
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        task: terraform-bootstrap-aws-analytical-env-cognito
+        params:
+          DEPLOY_PATH: cognito
+      - .: (( inject meta.plan.terraform-output ))
+        task: terraform-output-aws-analytical-env-cognito
+        config:
+          run:
+            dir: aws-analytical-env/terraform/deploy/cognito
+          inputs:
+            - name: aws-analytical-env
+            - name: terraform-config
+          outputs:
+            - name: terraform-output-aws-analytical-env-cognito
+        params:
+          TF_OUTPUT_FOLDER: terraform-output-aws-analytical-env-cognito
+          TF_WORKSPACE: 'management-dev'
+      - .: (( inject meta.plan.rbac-munge-policies-batch ))
+        config:
+          inputs:
+            - name: meta
+            - name: terraform-output-aws-analytical-env-app
+            - name: terraform-output-aws-analytical-env-cognito
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+            BATCH_JOB_QUEUE: rbac_munge_policies_queue
+            BATCH_JOB_DEFINITION: rbac_munge_policy_job
+            TF_WORKSPACE: 'integration'

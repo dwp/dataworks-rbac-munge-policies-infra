@@ -1,0 +1,28 @@
+resources:
+  - name: aws-analytical-env
+    type: git
+    source:
+      branch: master
+      access_token: ((dataworks-secrets.concourse_github_pat))
+      uri: https://github.com/dwp/aws-analytical-env.git
+    check_every: 5m
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+
+  - name: aws-rbac
+    type: git
+    source:
+      branch: master
+      username: ((dataworks.enterprise_github_username))
+      password: ((dataworks-secrets.enterprise_github_pat))
+      uri: https://((dataworks.enterprise_github_url))/dip/aws-rbac.git
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+    check_every: 5m
+
+  - name: meta-development
+    type: meta
+
+  - name: meta-qa
+    type: meta
+
+  - name: meta-int
+    type: meta
