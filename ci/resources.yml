@@ -19,7 +19,7 @@ resources:
   - name: dataworks-rbac-munge-policies-infra-update-pipeline
     type: git
     source:
-      branch: fix-pipeline
+      branch: master
       uri: https://github.com/dwp/dataworks-rbac-munge-policies-infra.git
       paths:
         - ci/*
