@@ -7,6 +7,6 @@ groups:
   - name: pull-request
     jobs:
       - dataworks-rbac-munge-policies-infra-pr
-  - name: update-pipeline
+  - name: update-pipelines
     jobs:
       - update-pipeline
