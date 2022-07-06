@@ -4,6 +4,7 @@ groups:
       - development
       - qa
       - integration
+      - preprod
   - name: pull-request
     jobs:
       - dataworks-rbac-munge-policies-infra-pr
