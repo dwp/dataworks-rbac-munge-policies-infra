@@ -13,7 +13,7 @@ variable "image_version" {
   description = "Container tag values."
   default = {
     rbac-munge-policies = {
-      development = "debug_5"
+      development = "debug_6"
       qa          = "debug"
       integration = "debug"
       preprod     = "debug"
