@@ -19,3 +19,10 @@ groups:
       - update-users-int
       - update-groups-int
       - batch-rbac-munge-policies-int
+
+  - name: rbac-munge-policies-preprod
+    jobs:
+      - sync-cognito-users-to-rds-preprod
+      - update-users-preprod
+      - update-groups-preprod
+      - batch-rbac-munge-policies-preprod

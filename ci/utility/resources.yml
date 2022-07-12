@@ -26,3 +26,6 @@ resources:
 
   - name: meta-int
     type: meta
+
+  - name: meta-preprod
+    type: meta

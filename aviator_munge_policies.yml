@@ -1,0 +1,16 @@
+spruce:
+  - base: ci/utility/meta.yml
+    prune:
+      - meta
+    merge:
+      - with_in: ci/utility/
+        regexp: ".*yml"
+      - with_in: ci/utility/jobs/rbac-munge-policies/
+        regexp: ".*yml"
+    to: munge_policies.yml
+fly:
+  name: munge-policies
+  target: utility
+  expose: true
+  check_creds: true
+  config: munge_policies.yml
