@@ -1,0 +1,15 @@
+jobs:
+  - name: preprod
+    max_in_flight: 1
+    plan:
+      - get: dataworks-rbac-munge-policies-infra
+        trigger: true
+      - get: dw-al2-ecs-ami
+        trigger: true
+      - .: (( inject meta.plan.terraform-bootstrap ))
+      - .: (( inject meta.plan.terraform-apply ))
+        params:
+          TF_WORKSPACE: 'preprod'
+      - .: (( inject meta.plan.terraform-plan ))
+        params:
+          TF_WORKSPACE: 'preprod'

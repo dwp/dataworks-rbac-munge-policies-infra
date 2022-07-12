@@ -125,7 +125,7 @@ data "terraform_remote_state" "cognito" {
 
 data "terraform_remote_state" "aws-analytical-environment-app" {
   backend   = "s3"
-  workspace = local.management_workspace[local.management_account[local.environment]]
+  workspace = terraform.workspace
 
   config = {
     bucket         = "{{terraform.state_file_bucket}}"
