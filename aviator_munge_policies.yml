@@ -7,10 +7,10 @@ spruce:
         regexp: ".*yml"
       - with_in: ci/utility/jobs/rbac-munge-policies/
         regexp: ".*yml"
-    to: munge_policies.yml
+    to: munge_policies_pipeline.yml
 fly:
   name: munge-policies
   target: utility
   expose: true
   check_creds: true
-  config: munge_policies.yml
+  config: munge_policies_pipeline.yml

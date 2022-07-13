@@ -26,3 +26,10 @@ groups:
       - update-users-preprod
       - update-groups-preprod
       - batch-rbac-munge-policies-preprod
+
+  - name: rbac-munge-policies-production
+    jobs:
+      - sync-cognito-users-to-rds-production
+      - update-users-production
+      - update-groups-production
+      - batch-rbac-munge-policies-production

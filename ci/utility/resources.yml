@@ -28,4 +28,7 @@ resources:
     type: meta
 
   - name: meta-preprod
+    type: met
+
+  - name: meta-production
     type: meta
