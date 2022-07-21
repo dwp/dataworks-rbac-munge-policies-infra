@@ -49,7 +49,7 @@ resource "aws_batch_job_definition" "rbac_munge_policy" {
           {"name": "DATABASE_NAME", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.rbac_db.db_name}"},
           {"name": "DATABASE_SECRET_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.rbac_db.secrets.client_credentials["emrfs-lambda"].arn}"},
           {"name": "COMMON_TAGS", "value": "${join(",", [for key, val in local.common_tags : "${key}:${val}"])}"},
-          {"name": "ASSUME_ROLE_POLICY_JSON", "value": "${local.emrfs_iam_assume_role}"},
+          {"name": "ASSUME_ROLE_POLICY_JSON", "value": ${jsonencode(data.terraform_remote_state.aws-analytical-environment-app.outputs.emrfs_iam_assume_role_json)}},
           {"name": "S3FS_BUCKET_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.s3fs_bucket.arn}"},
           {"name": "S3FS_KMS_ARN", "value": "${data.terraform_remote_state.aws-analytical-environment-app.outputs.s3fs_bucket_kms_arn}"},
           {"name": "REGION", "value": "eu-west-2"},
