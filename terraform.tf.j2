@@ -12,13 +12,22 @@ terraform {
 
   required_providers {
     aws = {
-      version = "~> 3.42.0"
+      version = "4.53"
     }
   }
 }
 
 provider "aws" {
   region  = "{{terraform.provider_region}}"
+
+  default_tags {
+    tags = {
+      Application      = "DataWorks"                              # As per our definition on ServiceNow
+      Function         = "Data and Analytics"                     # As per our definition on ServiceNow
+      Environment      = local.hcs_environment[local.environment] # Set up locals as per Tagging doc requirements https://engineering.dwp.gov.uk/policies/hcs-cloud-hosting-policies/resource-identification-tagging/
+      Business-Project = "PRJ0022507"                             # This seems to replace costcode as per the doc https://engineering.dwp.gov.uk/policies/hcs-cloud-hosting-policies/resource-identification-tagging/
+    }
+  }
 
   assume_role {
     role_arn = "arn:aws:iam::${lookup(local.account, local.environment)}:role/${var.assume_role}"
@@ -36,12 +45,8 @@ locals {
   }
 
   common_tags = {
-    {%- for key, value in common_tags.items() %}
-      {{key}} = "{{value}}"
-    {%- endfor %}
-    Environment  = local.environment
-    Application  = local.name
-    Team         = "DataWorks"
+    DWX_Environment  = local.environment
+    DWX_Application  = local.name
   }
 
   cidr_block = {
@@ -50,6 +55,18 @@ locals {
         {%- for key, value in ranges.items() %}
           {{ key }} = "{{ value }}"{% endfor %}
       } {%- endfor %}
+  }
+
+  # Configured as per Tagging doc requirements https://engineering.dwp.gov.uk/policies/hcs-cloud-hosting-policies/resource-identification-tagging/
+  # Also required as per Tenable documentation https://engineering.dwp.gov.uk/products/gold-images/agents/tenable/
+  hcs_environment = {
+    development    = "Dev"
+    qa             = "Test"
+    integration    = "Stage"
+    preprod        = "Stage"
+    production     = "Production"
+    management     = "SP_Tooling"
+    management-dev = "DT_Tooling"
   }
 
   management_account = {
