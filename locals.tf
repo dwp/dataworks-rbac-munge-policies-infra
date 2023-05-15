@@ -49,4 +49,35 @@ locals {
     production  = 32
   }
 
+  common_config_bucket         = data.terraform_remote_state.common.outputs.config_bucket
+  common_config_bucket_cmk_arn = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+
+  cw_rbac_munge_agent_namespace                 = "/app/rbac-munge"
+  cw_rbac_munge_agent_log_group_name            = "/app/rbac-munge"
+  
+
+  cw_rbac_munge_main_agent_namespace                    = "/app/rbac-munge"
+  cw_agent_metrics_collection_interval                  = 60
+  cw_agent_cpu_metrics_collection_interval              = 60
+  cw_agent_disk_measurement_metrics_collection_interval = 60
+  cw_agent_disk_io_metrics_collection_interval          = 60
+  cw_agent_mem_metrics_collection_interval              = 60
+  cw_agent_netstat_metrics_collection_interval          = 60
+
+
+  rbac_munge_asg_autoshutdown = {
+    development = "False"
+    qa          = "False"
+    integration = "False"
+    preprod     = "False"
+    production  = "False"
+  }
+
+  rbac_munge_asg_ssmenabled = {
+    development = "True"
+    qa          = "True"
+    integration = "True"
+    preprod     = "False"
+    production  = "False"
+  }
 }
