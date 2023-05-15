@@ -49,6 +49,9 @@ locals {
     production  = 32
   }
 
+  common_config_bucket         = data.terraform_remote_state.common.outputs.config_bucket
+  common_config_bucket_cmk_arn = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+
   cw_rbac_munge_agent_namespace                 = "/app/rbac-munge"
   cw_rbac_munge_agent_log_group_name            = "/app/rbac-munge"
   
