@@ -1,0 +1,72 @@
+jobs:
+  - name: apply-and-test-with-ami
+    max_in_flight: 1
+    serial_groups: [qa-applies]
+    plan:
+      - in_parallel:
+          - put: meta
+            resource: meta
+          - get: dw-al2-ecs-ami
+            resource: untested-dw-al2-ecs-ami
+            trigger: true
+          - get: dataworks-rbac-munge-policies-infra
+            passed:
+              - qa
+            trigger: true
+      - .: (( inject meta.plan.check-ami-test-results ))
+        input_mapping:
+          untested_ami: dw-al2-ecs-ami
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        config:
+          params:
+            AWS_ACC: ((aws_account.qa))
+          inputs:
+            - name: previous_success
+      - .: (( inject meta.plan.terraform-apply ))
+        config:
+          params:
+            TF_WORKSPACE: qa
+            TEST_AMI_RUN: true
+          inputs:
+            - name: previous_success
+      - .: (( inject meta.plan.terraform-plan ))
+        config:
+          params:
+            TF_WORKSPACE: qa
+            TEST_AMI_RUN: true
+          inputs:
+            - name: previous_success
+      - .: (( inject meta.plan.test-ecs-ami ))
+    on_failure:
+      do:
+        - .: (( inject meta.plan.ami-test-results ))
+          task: ami-test-result-fail
+          config:
+            params:
+              RESULT: FAILED
+        - get: dw-al2-ecs-ami-restored
+          resource: dw-al2-ecs-ami
+          trigger: false
+        - .: (( inject meta.plan.terraform-bootstrap ))
+          config:
+            params:
+              AWS_ACC: ((aws_account.qa))
+        - .: (( inject meta.plan.terraform-apply ))
+          config:
+            params:
+              TF_WORKSPACE: qa
+          input_mapping:
+            dw-al2-ecs-ami: dw-al2-ecs-ami-restored
+        - .: (( inject meta.plan.terraform-plan ))
+          config:
+            params:
+              TF_WORKSPACE: qa
+          input_mapping:
+            dw-al2-ecs-ami: dw-al2-ecs-ami-restored
+    on_success:
+      do:
+        - .: (( inject meta.plan.ami-test-results ))
+          task: ami-test-result-success
+          config:
+            params:
+              RESULT: SUCCESS
