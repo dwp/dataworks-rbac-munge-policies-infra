@@ -12,3 +12,6 @@ groups:
   - name: update-pipelines
     jobs:
       - update-pipeline
+  - name: ami-test
+    jobs:
+      - apply-and-test-with-ami

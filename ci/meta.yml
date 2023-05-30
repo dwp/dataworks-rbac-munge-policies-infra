@@ -78,3 +78,137 @@ meta:
           - name: dw-al2-ecs-ami
       params:
         DETAILED_EXITCODE: -detailed-exitcode
+
+    test-ecs-ami:
+      task: test-ecs-ami
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              source ./previous_success/exit-if-succeeded.sh
+              export AWS_DEFAULT_REGION
+              source /assume-role
+              set -x
+              max_retries=15
+              AMI="$(cat dw-al2-ecs-ami/id)"
+              CEs="$(aws batch describe-compute-environments)"
+
+              CEs=$(aws batch describe-compute-environments --query 'computeEnvironments[]' \
+              | jq -r '.[].computeEnvironmentName')
+
+              CE="$(echo $CEs | grep -o -e $COMPUTE_ENV_PREFIX'[a-zA-Z0-9_-]*')"
+
+              job_id=$(aws batch submit-job --job-name rbac_munge_policies_test_ami_job \
+              --job-definition rbac_munge_policy_job --job-queue rbac_munge_policies_queue | jq -r '.jobId')
+
+              times_retried=1
+              while [ $times_retried -le $max_retries ]
+              do
+                sleep 60
+                job_status="$(aws batch describe-jobs --jobs $job_id | jq -r '.jobs[0].status')"
+                if [ "$job_status" == "SUCCEEDED" ]; then
+                  exit 0
+                fi
+                let "times_retried+=1"
+              done
+              exit 1
+        inputs:
+          - name: dw-al2-ecs-ami
+          - name: previous_success
+      params:
+        AWS_DEFAULT_REGION: ((dataworks.aws_region))
+        AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+        COMPUTE_ENV_PREFIX: batch_rbac_munge_policies_compute
+
+    ami-test-results:
+      task: ami-test-result
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.terraform_repository))
+            tag: ((dataworks.terraform_version))
+        params:
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+          GIT_USERNAME: ((dataworks.concourse_github_username))
+          GIT_EMAIL: ((dataworks.concourse_github_email))
+          GITHUB_TOKEN: ((dataworks-secrets.concourse_github_pat))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              source ./previous_success/exit-if-succeeded.sh
+              set +x
+              AMI_ID=$(cat dw-al2-ecs-ami/id)
+              DATE=$(date -u)
+              PIPELINE="$(cat meta/build_pipeline_name)"
+              git config --global user.name "${GIT_USERNAME}"
+              git config --global user.email "${GIT_EMAIL}"
+              git clone https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-configs
+              cd ami-builder-configs/results
+              echo "$AMI_ID $RESULT" > "$PIPELINE.test"
+              git add "$PIPELINE.test"
+              git commit -m "Updating $PIPELINE AMI test on ${DATE}"
+              git push https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-configs
+        inputs:
+          - name: meta
+          - name: dw-al2-ecs-ami
+          - name: previous_success
+
+    check-ami-test-results:
+      task: check-ami-test-result
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.terraform_repository))
+            tag: ((dataworks.terraform_version))
+        params:
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+          GIT_USERNAME: ((dataworks.concourse_github_username))
+          GIT_EMAIL: ((dataworks.concourse_github_email))
+          GITHUB_TOKEN: ((dataworks-secrets.concourse_github_pat))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              set +x
+              PREVIOUS_SUCCESS=false
+              AMI_ID=$(cat untested_ami/id)
+              DATE=$(date -u)
+              PIPELINE="$(cat meta/build_pipeline_name)"
+              PATH_TO_RESULTS="ami-builder-configs/results"
+              git config --global user.name "${GIT_USERNAME}"
+              git config --global user.email "${GIT_EMAIL}"
+              git clone https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-configs
+              if [ -f "./$PATH_TO_RESULTS/$PIPELINE.test" ]; then
+                set +e
+                grep "$AMI_ID SUCCESS" "./$PATH_TO_RESULTS/$PIPELINE.test"
+                if [ $? -eq 0 ]; then
+                  PREVIOUS_SUCCESS=true
+                fi
+                set -e
+              fi
+              touch ./previous_success/exit-if-succeeded.sh
+              if $PREVIOUS_SUCCESS; then
+                 echo 'echo "AMI already passed. Exiting..."; exit 0' > ./previous_success/exit-if-succeeded.sh
+              fi
+              chmod +x ./previous_success/exit-if-succeeded.sh
+        outputs:
+          - name: previous_success
+        inputs:
+          - name: meta
+          - name: untested_ami
