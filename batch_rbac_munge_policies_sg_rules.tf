@@ -31,43 +31,43 @@ resource "aws_security_group_rule" "ae_internet_proxy_vpce_ingress_from_batch_rb
 }
 
 resource "aws_security_group_rule" "batch_rbac_host_outbound_tanium_1" {
-  description       = "Batch rbac host outbound port 1 to Tanium"
-  type              = "egress"
-  from_port         = var.tanium_port_1
-  to_port           = var.tanium_port_1
-  protocol          = "tcp"
-  prefix_list_ids   = local.tanium_prefix[local.environment]
-  security_group_id = local.batch_rbac_compute_security_group_id
+  description              = "Batch rbac host outbound port 1 to Tanium"
+  type                     = "egress"
+  from_port                = var.tanium_port_1
+  to_port                  = var.tanium_port_1
+  protocol                 = "tcp"
+  security_group_id        = local.batch_rbac_compute_security_group_id
+  source_security_group_id = data.terraform_remote_state.aws_analytical_environment_infra.outputs.tanium_service_endpoint.sg
 }
 
 resource "aws_security_group_rule" "batch_rbac_host_outbound_tanium_2" {
-  description       = "Batch rbac host outbound port 2 to Tanium"
-  type              = "egress"
-  from_port         = var.tanium_port_2
-  to_port           = var.tanium_port_2
-  protocol          = "tcp"
-  prefix_list_ids   = local.tanium_prefix[local.environment]
-  security_group_id = local.batch_rbac_compute_security_group_id
+  description              = "Batch rbac host outbound port 2 to Tanium"
+  type                     = "egress"
+  from_port                = var.tanium_port_2
+  to_port                  = var.tanium_port_2
+  protocol                 = "tcp"
+  security_group_id        = local.batch_rbac_compute_security_group_id
+  source_security_group_id = data.terraform_remote_state.aws_analytical_environment_infra.outputs.tanium_service_endpoint.sg
 }
 
 resource "aws_security_group_rule" "batch_rbac_host_inbound_tanium_1" {
-  description       = "Batch rbac host inbound port 1 from Tanium"
-  type              = "ingress"
-  from_port         = var.tanium_port_1
-  to_port           = var.tanium_port_1
-  protocol          = "tcp"
-  prefix_list_ids   = local.tanium_prefix[local.environment]
-  security_group_id = local.batch_rbac_compute_security_group_id
+  description              = "Batch rbac host inbound port 1 from Tanium"
+  type                     = "ingress"
+  from_port                = var.tanium_port_1
+  to_port                  = var.tanium_port_1
+  protocol                 = "tcp"
+  security_group_id        = data.terraform_remote_state.aws_analytical_environment_infra.outputs.tanium_service_endpoint.sg
+  source_security_group_id = local.batch_rbac_compute_security_group_id
 }
 
 resource "aws_security_group_rule" "batch_rbac_host_inbound_tanium_2" {
-  description       = "Batch rbac host inbound port 2 from Tanium"
-  type              = "ingress"
-  from_port         = var.tanium_port_2
-  to_port           = var.tanium_port_2
-  protocol          = "tcp"
-  prefix_list_ids   = local.tanium_prefix[local.environment]
-  security_group_id = local.batch_rbac_compute_security_group_id
+  description              = "Batch rbac host inbound port 2 from Tanium"
+  type                     = "ingress"
+  from_port                = var.tanium_port_2
+  to_port                  = var.tanium_port_2
+  protocol                 = "tcp"
+  security_group_id        = data.terraform_remote_state.aws_analytical_environment_infra.outputs.tanium_service_endpoint.sg
+  source_security_group_id = local.batch_rbac_compute_security_group_id
 }
 
 resource "aws_security_group_rule" "ae_batch_rbac_egress_to_internal_compute_vpc_endpoint" {
