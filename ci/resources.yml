@@ -27,7 +27,7 @@ resources:
     webhook_token: ((dataworks.concourse_github_webhook_token))
     check_every: 5m 
 
-  - name: dw-al2-ecs-ami
+  - name: dw-al2-ecs-rbac-munge-ami
     type: ami
     check_every: 1h
     source:
@@ -37,7 +37,7 @@ resources:
         owner-id: "((aws_account.management))"
         is-public: false
         state: available
-        name: dw-al2-ecs-ami-*
+        name: dw-al2-ecs-rbac-munge-ami-*
   
   - name: untested-dw-al2-ecs-ami
     type: ami
